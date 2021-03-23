@@ -175,9 +175,10 @@ class DL1DataReader:
                         param_list = []
                         for parameter_name in self.training_parameters:
                             if parameter_name != 'event_index':
+                                # with next production delete this if. Keep only the "else" code
                                 if parameter_name == 'hillas_log_intensity':
-                                    param = [np.log10(x['hillas_intensity']) for x in parameters_table if
-                                             x['hillas_intensity'] > -1]
+                                    param = [x['hillas_intensity'] for x in parameters_table if x['hillas_intensity'] > -1]
+                                    param = np.log10(param)
                                     param.insert(0, -1)
                                     param_list.append(param)
                                 else:
@@ -344,7 +345,8 @@ class DL1DataReader:
                     )
 
         # Add parameters info to description
-        # working only with mono at the moment
+        # working only with mono at the moment, please add stereo mode
+        # TODO working in stereo mode
         if self.mode == 'mono':
             for col_name in self.training_parameters:
                 col = parameters_table.cols._f_col(col_name)
@@ -504,7 +506,7 @@ class DL1DataReader:
             # Get a single image
             nrow, image_index, tel_id = identifiers[1:4]
             with lock:
-                child = self.files[filename].root['/Images']._f_get_child(self.tel_type)
+                child = self.files[filename].root['Images']._f_get_child(self.tel_type)
             image = self._get_image(child, self.tel_type, image_index)
             example = [image]
 
@@ -526,6 +528,7 @@ class DL1DataReader:
                 example.extend(tel_type_example)
 
         # Load parameters, working only with mono mode at the moment
+        # TODO working also with stereo mode
         if self.mode == "mono":
             with lock:
                 parameters = self.files[filename].root['/Parameters' + str(self.algorithm)][self.tel_type]
